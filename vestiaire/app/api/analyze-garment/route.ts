@@ -7,13 +7,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType, ResponseSchema } from '@google/generative-ai';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // Native Gemini Response Schema Definition
-const garmentAnalysisSchema = {
+const garmentAnalysisSchema: ResponseSchema = {
   type: SchemaType.OBJECT,
   properties: {
     category: {
@@ -111,7 +111,6 @@ export async function POST(req: NextRequest) {
     let finalBase64 = imageBase64;
     let finalMimeType = mimeType;
 
-    // 1. Fetch image server-side from public Supabase URL if imageUrl is provided
     if (imageUrl && !finalBase64) {
       try {
         const imageResponse = await fetch(imageUrl);
@@ -138,7 +137,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Unconfigured Key Development Fallback Payload
     if (!apiKey) {
       return NextResponse.json(
         {
@@ -163,7 +161,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Initialize Gemini 2.5 Flash Model
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       generationConfig: {
@@ -191,7 +188,6 @@ Strict Rules:
     try {
       result = await model.generateContent([prompt, imagePart]);
     } catch (apiErr: any) {
-      // Log full error details server-side silently
       console.error('Gemini API Upstream Error (2.5 Flash):', apiErr);
 
       try {
@@ -206,7 +202,6 @@ Strict Rules:
         result = await fallbackModel.generateContent([prompt, imagePart]);
       } catch (fallbackErr: any) {
         console.error('Gemini API Upstream Error (Fallback 1.5 Flash):', fallbackErr);
-        // HTTP 502 Bad Gateway for upstream service/rate-limit failures
         return NextResponse.json(
           { error: 'Upstream AI vision service error. Please try again later.' },
           { status: 502 }
@@ -216,7 +211,6 @@ Strict Rules:
 
     const text = result.response.text();
 
-    // 3. Parse JSON & handle malformed response (HTTP 422)
     let analysis;
     try {
       analysis = JSON.parse(text);
@@ -228,7 +222,6 @@ Strict Rules:
       );
     }
 
-    // 4. Return { analysis: GarmentAnalysis } with HTTP 200
     return NextResponse.json({ analysis }, { status: 200 });
   } catch (error: any) {
     console.error('Unhandled Internal Server Error:', error);

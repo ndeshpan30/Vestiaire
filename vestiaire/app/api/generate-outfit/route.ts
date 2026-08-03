@@ -6,13 +6,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType, ResponseSchema } from '@google/generative-ai';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // Native Gemini Response Schema Definition
-const outfitRecommendationSchema = {
+const outfitRecommendationSchema: ResponseSchema = {
   type: SchemaType.OBJECT,
   properties: {
     outfit: {
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Development Fallback Payload when GEMINI_API_KEY is missing
+    // Unconfigured Key Development Fallback Payload
     if (!apiKey) {
       return NextResponse.json({
         recommendation: {
@@ -235,7 +235,6 @@ STYLING DIRECTIVES:
       if (validItemIds.has(slotItem.item_id)) {
         validatedOutfit.push(slotItem);
       } else {
-        // Strip hallucinated item and append to unfilled_slots
         console.warn(`Stripped hallucinated item_id: "${slotItem.item_id}" for slot "${slotItem.slot}"`);
         unfilledSlots.push({
           slot: slotItem.slot,
