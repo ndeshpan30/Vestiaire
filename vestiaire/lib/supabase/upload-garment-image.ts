@@ -59,17 +59,18 @@ export async function uploadGarmentImage(
     const uuid = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const storagePath = `${userId}/${uuid}-${sanitizedFileName}`;
 
-    // Upload to Supabase Storage bucket `garment-images`
+    // Upload to Supabase Storage bucket explicitly named `garment-images` with upsert: true
     const { data, error } = await supabase.storage
       .from('garment-images')
       .upload(storagePath, file, {
         cacheControl: '3600',
-        upsert: false,
+        upsert: true, // Allow overwriting to prevent 400 duplicate file errors
         contentType: file.type || 'image/jpeg',
       });
 
     if (error) {
-      throw new UploadError(`Supabase Storage upload failed: ${error.message}`, error);
+      console.error('Supabase Storage Upload Error details:', error.message, error);
+      throw new UploadError(`Supabase Storage upload rejected: ${error.message}`, error);
     }
 
     if (!data?.path) {
