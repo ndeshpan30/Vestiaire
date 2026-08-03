@@ -6,13 +6,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { GoogleGenerativeAI, SchemaType, ResponseSchema } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // Native Gemini Response Schema Definition
-const outfitRecommendationSchema: ResponseSchema = {
+const outfitRecommendationSchema = {
   type: SchemaType.OBJECT,
   properties: {
     outfit: {
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     const validItemIds = new Set(allItems.map((i) => i.id));
 
     // 3. Group Wardrobe Items by Category & Accessory Sub-Types
-    const groupedWardrobe: Record<string, any[]> = {
+    const groupedWardrobe: Record<string, any> = {
       Top: [],
       Bottom: [],
       Dress: [],
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         Hat: [],
         Layering: [],
         Other: [],
-      } as Record<string, any[]>,
+      },
     };
 
     (wardrobeGarments || []).forEach((item) => {
@@ -185,7 +185,7 @@ STYLING DIRECTIVES:
       model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
-        responseSchema: outfitRecommendationSchema,
+        responseSchema: outfitRecommendationSchema as any,
       },
     });
 
@@ -200,7 +200,7 @@ STYLING DIRECTIVES:
           model: 'gemini-1.5-flash',
           generationConfig: {
             responseMimeType: 'application/json',
-            responseSchema: outfitRecommendationSchema,
+            responseSchema: outfitRecommendationSchema as any,
           },
         });
         result = await fallbackModel.generateContent([prompt]);

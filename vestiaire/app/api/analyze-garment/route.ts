@@ -18,6 +18,7 @@ const garmentAnalysisSchema: ResponseSchema = {
   properties: {
     category: {
       type: SchemaType.STRING,
+      format: 'enum',
       enum: ['Top', 'Bottom', 'Dress', 'Outerwear', 'Footwear', 'Accessory'],
     },
     subcategory: {
@@ -39,6 +40,7 @@ const garmentAnalysisSchema: ResponseSchema = {
     },
     pattern: {
       type: SchemaType.STRING,
+      format: 'enum',
       enum: ['Solid', 'Stripe', 'Check', 'Floral', 'Animal', 'Geometric', 'Abstract', 'PolkaDot', 'Camo'],
     },
     material_guess: {
@@ -57,6 +59,7 @@ const garmentAnalysisSchema: ResponseSchema = {
       type: SchemaType.ARRAY,
       items: {
         type: SchemaType.STRING,
+        format: 'enum',
         enum: ['Spring', 'Summer', 'Fall', 'Winter'],
       },
     },
@@ -67,11 +70,13 @@ const garmentAnalysisSchema: ResponseSchema = {
     },
     accessory_type: {
       type: SchemaType.STRING,
+      format: 'enum',
       enum: ['Jewelry', 'Watch', 'Bag', 'Belt', 'Scarf', 'Hat', 'Layering'],
       nullable: true,
     },
     metal_tone: {
       type: SchemaType.STRING,
+      format: 'enum',
       enum: ['Gold', 'Silver', 'RoseGold', 'Mixed', 'None'],
       nullable: true,
     },
