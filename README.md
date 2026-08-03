@@ -2,7 +2,6 @@
 
 A modern, luxury-inspired digital wardrobe application that brings an editorial magazine aesthetic to personal wardrobe management. Built with Next.js 14, Supabase SSR, and Google Gemini 2.5 Flash Vision AI.
 
-![VESTIAIRE Banner](https://raw.githubusercontent.com/your-username/vestiaire/main/public/banner-preview.png)
 
 ---
 
