@@ -1,0 +1,28 @@
+# Environment Credentials (STRICTLY EXCLUDED FROM GIT)
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+.streamlit/secrets.toml
+
+# SQLite Database Files
+wardrobe.db
+*.sqlite
+*.sqlite3
+
+# Dependencies & Build Artifacts
+node_modules/
+.next/
+out/
+build/
+dist/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.DS_Store
+
+# Saved Upload Media
+saved_clothes/*
+!saved_clothes/.gitkeep

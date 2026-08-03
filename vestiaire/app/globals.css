@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* 80/15/5 Color Rule Tokens */
+  --bg-canvas: #FFFFFF;             /* 80% Canvas */
+  --text-primary: #121212;          /* 15% Primary Text (18.5:1 Contrast - AAA) */
+  --text-secondary: #404040;        /* Subtext (8.4:1 Contrast - AAA) */
+  --text-muted: #525252;            /* Informational Muted (4.6:1 Contrast - AA) */
+  --accent-signature: #5B1422;      /* 5% Signature Oxblood Accent (10.4:1 Contrast - AAA) */
+  --border-light: #EEEEEE;
+  --bg-[#FAFAFA]: #FAFAFA;
+
+  /* Font Families */
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Strict 4px/8px Spatial Grid Tokens */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+  background-color: #FFFFFF;
+  color: #121212;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial Headlines (Fraunces Serif) */
+h1, h2, h3, .font-serif, .editorial-headline {
+  font-family: var(--font-serif) !important;
+  color: #121212;
+}
+
+h1 {
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 44px;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+p, span, label, select, textarea {
+  font-family: var(--font-sans);
+}
+
+p {
+  font-size: 14px;
+  line-height: 22px;
+  color: #121212;
+}
+
+/* Minimalistic Editorial Underline Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+.editorial-input {
+  font-family: var(--font-sans) !important;
+  background-color: transparent !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: 1.5px solid #D4D4D4 !important;
+  border-radius: 0px !important;
+  padding: 10px 4px !important;
+  font-size: 14px !important;
+  color: #121212 !important;
+  transition: border-color 200ms ease-out !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+.editorial-input:focus {
+  outline: none !important;
+  border-bottom-color: #5B1422 !important;
+  box-shadow: none !important;
+}
+
+input::placeholder {
+  color: #737373 !important;
+  opacity: 1 !important;
+}
+
+/* Focus-Visible Keyboard Ring for Accessibility */
+button:focus-visible, a:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #5B1422 !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #EEEEEE;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5B1422;
+}
