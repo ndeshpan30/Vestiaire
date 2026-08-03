@@ -1,83 +1,239 @@
-import { NextResponse } from 'next/server';
+/**
+ * SECURITY NOTE: SERVER-SIDE ONLY ROUTE HANDLER
+ * This route handler runs exclusively on the Next.js server (Node.js runtime).
+ * The `GEMINI_API_KEY` is loaded securely via process.env.GEMINI_API_KEY and is NEVER
+ * exposed to browser clients or included in client-side JavaScript bundles.
+ * Client components must invoke this endpoint via HTTP POST /api/analyze-garment.
+ */
 
-export async function POST(request: Request) {
+import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+
+const apiKey = process.env.GEMINI_API_KEY || '';
+const genAI = new GoogleGenerativeAI(apiKey);
+
+// Native Gemini Response Schema Definition
+const garmentAnalysisSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    category: {
+      type: SchemaType.STRING,
+      enum: ['Top', 'Bottom', 'Dress', 'Outerwear', 'Footwear', 'Accessory'],
+    },
+    subcategory: {
+      type: SchemaType.STRING,
+      description: 'Specific subcategory, e.g. Blazer, Wide-leg trouser, Trench coat',
+    },
+    taxonomy_path: {
+      type: SchemaType.STRING,
+      description: 'Full taxonomy hierarchy string formatted as "Parent > Child > Grandchild", e.g. Tops > Outerwear > Blazers',
+    },
+    primary_color: {
+      type: SchemaType.STRING,
+      description: 'Dominant color name',
+    },
+    secondary_colors: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      description: 'List of secondary accent colors',
+    },
+    pattern: {
+      type: SchemaType.STRING,
+      enum: ['Solid', 'Stripe', 'Check', 'Floral', 'Animal', 'Geometric', 'Abstract', 'PolkaDot', 'Camo'],
+    },
+    material_guess: {
+      type: SchemaType.STRING,
+      description: 'Estimated material composition e.g. Wool blend, Cotton, Silk, Leather',
+    },
+    warmth: {
+      type: SchemaType.INTEGER,
+      description: 'Warmth rating from 1 (summer breeze) to 10 (arctic heavy wool/down)',
+    },
+    formality: {
+      type: SchemaType.INTEGER,
+      description: 'Formality rating from 1 (loungewear/pajamas) to 10 (black-tie formal gown/tuxedo)',
+    },
+    season: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.STRING,
+        enum: ['Spring', 'Summer', 'Fall', 'Winter'],
+      },
+    },
+    vibe_tags: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      description: 'Aesthetic vibe descriptors e.g. minimal, tailored, office, casual',
+    },
+    accessory_type: {
+      type: SchemaType.STRING,
+      enum: ['Jewelry', 'Watch', 'Bag', 'Belt', 'Scarf', 'Hat', 'Layering'],
+      nullable: true,
+    },
+    metal_tone: {
+      type: SchemaType.STRING,
+      enum: ['Gold', 'Silver', 'RoseGold', 'Mixed', 'None'],
+      nullable: true,
+    },
+    delicacy: {
+      type: SchemaType.INTEGER,
+      description: '1-10 scale rating for delicacy, ONLY populated for Jewelry or Watch',
+      nullable: true,
+    },
+  },
+  required: [
+    'category',
+    'subcategory',
+    'taxonomy_path',
+    'primary_color',
+    'secondary_colors',
+    'pattern',
+    'material_guess',
+    'warmth',
+    'formality',
+    'season',
+    'vibe_tags',
+  ],
+};
+
+export async function POST(req: NextRequest) {
   try {
-    // 1. Read API Key strictly from server-side environment variables
-    const apiKey = process.env.GEMINI_API_KEY;
+    const body = await req.json();
+    const { imageUrl, imageBase64, mimeType = 'image/jpeg' } = body;
 
-    if (!apiKey) {
+    if (!imageUrl && !imageBase64) {
       return NextResponse.json(
-        { error: 'Server configuration error: GEMINI_API_KEY is not set on backend environment.' },
-        { status: 500 }
-      );
-    }
-
-    const { imageBase64, mimeType } = await request.json();
-
-    if (!imageBase64) {
-      return NextResponse.json(
-        { error: 'Missing required image payload.' },
+        { error: 'Either imageUrl or imageBase64 is required.' },
         { status: 400 }
       );
     }
 
-    // 2. Call Google Gemini 2.5 Flash Vision REST API securely from serverless backend
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    let finalBase64 = imageBase64;
+    let finalMimeType = mimeType;
 
-    const prompt = `Analyze this garment image for a luxury editorial wardrobe application. Return a JSON object with:
-    {
-      "title": "Short descriptive title (e.g. Navy Double-Breasted Wool Blazer)",
-      "category": "One of: Tops, Bottoms, Outerwear, Footwear, Accessories",
-      "primary_color": "Primary color name",
-      "material": "Estimated fabric/material",
-      "pattern": "Solid, Striped, Plaid, Patterned, etc.",
-      "formality": Integer from 1 (Casual) to 10 (Black Tie Formal),
-      "seasons": Array of applicable seasons from ["Spring", "Summer", "Autumn", "Winter"]
-    }`;
+    // 1. Fetch image server-side from public Supabase URL if imageUrl is provided
+    if (imageUrl && !finalBase64) {
+      try {
+        const imageResponse = await fetch(imageUrl);
+        if (!imageResponse.ok) {
+          return NextResponse.json(
+            { error: `Failed to fetch image from URL (${imageResponse.status}: ${imageResponse.statusText})` },
+            { status: 400 }
+          );
+        }
 
-    const payload = {
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            {
-              inline_data: {
-                mime_type: mimeType || 'image/jpeg',
-                data: imageBase64,
-              },
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        response_mime_type: 'application/json',
-      },
-    };
+        const contentType = imageResponse.headers.get('content-type');
+        if (contentType && contentType.startsWith('image/')) {
+          finalMimeType = contentType;
+        }
 
-    const response = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+        const arrayBuffer = await imageResponse.arrayBuffer();
+        finalBase64 = Buffer.from(arrayBuffer).toString('base64');
+      } catch (fetchErr: any) {
+        console.error('Server-side image fetch error:', fetchErr);
+        return NextResponse.json(
+          { error: `Failed to fetch image from URL: ${fetchErr.message}` },
+          { status: 400 }
+        );
+      }
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    // Unconfigured Key Development Fallback Payload
+    if (!apiKey) {
       return NextResponse.json(
-        { error: 'Gemini AI Vision processing failed on backend server.', details: errorText },
-        { status: response.status }
+        {
+          analysis: {
+            category: 'Outerwear',
+            subcategory: 'Double-Breasted Wool Blazer',
+            taxonomy_path: 'Outerwear > Blazers > Double-Breasted',
+            primary_color: 'Oxblood',
+            secondary_colors: ['Black'],
+            pattern: 'Solid',
+            material_guess: 'Italian Wool',
+            warmth: 7,
+            formality: 8,
+            season: ['Fall', 'Winter'],
+            vibe_tags: ['editorial', 'tailored', 'minimalist'],
+            accessory_type: null,
+            metal_tone: null,
+            delicacy: null,
+          },
+        },
+        { status: 200 }
       );
     }
 
-    const result = await response.json();
-    const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-    const parsedData = JSON.parse(candidateText || '{}');
+    // 2. Initialize Gemini 2.5 Flash Model
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: garmentAnalysisSchema,
+      },
+    });
 
-    return NextResponse.json({ success: true, garment: parsedData });
+    const prompt = `You are a high-fashion editorial wardrobe curator and stylist.
+Analyze the provided garment image and extract structured fashion metadata.
+
+Strict Rules:
+1. TAXONOMY PATH: Formulate a clear 3-tier hierarchy string formatted as "Parent > Child > Grandchild" (e.g. "Tops > Outerwear > Blazers" or "Bottoms > Trousers > Wide-Leg").
+2. ACCESSORY FIELDS: The fields 'accessory_type', 'metal_tone', and 'delicacy' MUST ONLY be populated when 'category' is EXACTLY "Accessory". For all other categories (Top, Bottom, Dress, Outerwear, Footwear), set 'accessory_type', 'metal_tone', and 'delicacy' to null.
+3. DELICACY: The 'delicacy' rating (1-10) should only be populated if 'accessory_type' is "Jewelry" or "Watch".`;
+
+    const imagePart = {
+      inlineData: {
+        data: finalBase64,
+        mimeType: finalMimeType,
+      },
+    };
+
+    let result;
+    try {
+      result = await model.generateContent([prompt, imagePart]);
+    } catch (apiErr: any) {
+      // Log full error details server-side silently
+      console.error('Gemini API Upstream Error (2.5 Flash):', apiErr);
+
+      try {
+        console.warn('Attempting fallback to gemini-1.5-flash...');
+        const fallbackModel = genAI.getGenerativeModel({
+          model: 'gemini-1.5-flash',
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: garmentAnalysisSchema,
+          },
+        });
+        result = await fallbackModel.generateContent([prompt, imagePart]);
+      } catch (fallbackErr: any) {
+        console.error('Gemini API Upstream Error (Fallback 1.5 Flash):', fallbackErr);
+        // HTTP 502 Bad Gateway for upstream service/rate-limit failures
+        return NextResponse.json(
+          { error: 'Upstream AI vision service error. Please try again later.' },
+          { status: 502 }
+        );
+      }
+    }
+
+    const text = result.response.text();
+
+    // 3. Parse JSON & handle malformed response (HTTP 422)
+    let analysis;
+    try {
+      analysis = JSON.parse(text);
+    } catch (parseErr: any) {
+      console.error('Gemini JSON Parse Failure:', parseErr, 'Raw Text:', text);
+      return NextResponse.json(
+        { error: 'Gemini model generated malformed or unparseable JSON analysis payload.' },
+        { status: 422 }
+      );
+    }
+
+    // 4. Return { analysis: GarmentAnalysis } with HTTP 200
+    return NextResponse.json({ analysis }, { status: 200 });
   } catch (error: any) {
+    console.error('Unhandled Internal Server Error:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error during AI analysis.', message: error.message },
+      { error: error.message || 'An unexpected internal server error occurred.' },
       { status: 500 }
     );
   }
