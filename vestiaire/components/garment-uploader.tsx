@@ -248,7 +248,8 @@ export function GarmentUploader({
 
       return result;
     } catch (err: any) {
-      const errorMsg = err instanceof UploadError ? err.message : err.message || 'Processing failed';
+      const errorMsg = err instanceof UploadError ? err.message : err?.message || 'Processing failed';
+      console.error('Supabase Storage Error:', err?.message || err);
       setQueue((prev) =>
         prev.map((q) =>
           q.id === item.id

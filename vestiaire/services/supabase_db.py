@@ -147,24 +147,29 @@ def fetch_garments_for_user(
 
 
 def upload_user_garment_image(user_id: str, image_bytes: bytes, file_extension: str = "png") -> Optional[str]:
-    """Uploads raw image bytes to user-isolated folder ({user_id}/garment_timestamp.png) in garments bucket."""
+    """Uploads raw image bytes to user-isolated folder ({user_id}/garment_timestamp.png) in garment-images bucket."""
     client = get_supabase_client()
     if not client:
         return None
 
     ext = file_extension.lstrip('.')
     filename = f"{user_id}/garment_{int(time.time() * 1000)}.{ext}"
+    bucket_name = os.environ.get("NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET", "garment-images")
     
     try:
-        client.storage.from_("garments").upload(
+        res = client.storage.from_(bucket_name).upload(
             path=filename,
             file=image_bytes,
-            file_options={"content-type": f"image/{ext}"}
+            file_options={"content-type": f"image/{ext}", "upsert": "true"}
         )
-        public_url = client.storage.from_("garments").get_public_url(filename)
+        if hasattr(res, 'error') and res.error:
+            error_msg = getattr(res.error, 'message', str(res.error))
+            print(f"Supabase Storage Error: {error_msg}")
+        public_url = client.storage.from_(bucket_name).get_public_url(filename)
         return public_url
     except Exception as e:
-        print(f"Supabase Storage Upload Error: {e}")
+        error_msg = getattr(e, 'message', str(e))
+        print(f"Supabase Storage Error: {error_msg}")
         return None
 
 
@@ -202,12 +207,18 @@ def delete_garment_for_user(user_id: str, garment_id: str, image_url: Optional[s
         return False
 
     # Optional Storage Cleanup
-    if image_url and f"garments/{user_id}/" in image_url:
+    bucket_name = os.environ.get("NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET", "garment-images")
+    if image_url:
         try:
-            filename = image_url.split("garments/")[-1]
-            client.storage.from_("garments").remove([filename])
+            if f"{bucket_name}/" in image_url:
+                filename = image_url.split(f"{bucket_name}/")[-1]
+                client.storage.from_(bucket_name).remove([filename])
+            elif "garment-images/" in image_url:
+                filename = image_url.split("garment-images/")[-1]
+                client.storage.from_(bucket_name).remove([filename])
         except Exception as e:
-            print(f"Storage Delete Note: {e}")
+            error_msg = getattr(e, 'message', str(e))
+            print(f"Storage Delete Note: {error_msg}")
 
     res = client.table("garments").delete().eq("id", garment_id).eq("user_id", user_id).execute()
     return bool(res.data)

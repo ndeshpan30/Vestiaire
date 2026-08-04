@@ -121,13 +121,13 @@ CREATE POLICY "Users can update their own garments" ON public.garments FOR UPDAT
 CREATE POLICY "Users can delete their own garments" ON public.garments FOR DELETE USING (auth.uid() = user_id);
 
 -- Storage Bucket Policies
-INSERT INTO storage.buckets (id, name, public) VALUES ('garments', 'garments', true)
+INSERT INTO storage.buckets (id, name, public) VALUES ('garment-images', 'garment-images', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
-CREATE POLICY "Users can read garment images" ON storage.objects FOR SELECT USING (bucket_id = 'garments');
+CREATE POLICY "Users can read garment images" ON storage.objects FOR SELECT USING (bucket_id = 'garment-images');
 CREATE POLICY "Users can upload to their user folder" ON storage.objects FOR INSERT WITH CHECK (
-    bucket_id = 'garments' AND auth.uid()::text = (storage.foldername(name))[1]
+    bucket_id = 'garment-images' AND auth.uid()::text = (storage.foldername(name))[1]
 );
 CREATE POLICY "Users can delete from their user folder" ON storage.objects FOR DELETE USING (
-    bucket_id = 'garments' AND auth.uid()::text = (storage.foldername(name))[1]
+    bucket_id = 'garment-images' AND auth.uid()::text = (storage.foldername(name))[1]
 );

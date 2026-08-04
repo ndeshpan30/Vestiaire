@@ -8,6 +8,11 @@ export class UploadError extends Error {
 }
 
 /**
+ * Storage Bucket Name for Garments with fallback default to 'garment-images'
+ */
+const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'garment-images';
+
+/**
  * RLS STORAGE POLICY FLAG & CHECKLIST:
  * Ensure the `garment-images` bucket is created in Supabase Dashboard (Storage -> New Bucket -> 'garment-images', Public=true).
  * 
@@ -59,9 +64,11 @@ export async function uploadGarmentImage(
     const uuid = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const storagePath = `${userId}/${uuid}-${sanitizedFileName}`;
 
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'garment-images';
+
     // Upload to Supabase Storage bucket explicitly named `garment-images` with upsert: true
     const { data, error } = await supabase.storage
-      .from('garment-images')
+      .from(bucketName)
       .upload(storagePath, file, {
         cacheControl: '3600',
         upsert: true, // Allow overwriting to prevent 400 duplicate file errors
@@ -69,7 +76,7 @@ export async function uploadGarmentImage(
       });
 
     if (error) {
-      console.error('Supabase Storage Upload Error details:', error.message, error);
+      console.error('Supabase Storage Error:', error.message);
       throw new UploadError(`Supabase Storage upload rejected: ${error.message}`, error);
     }
 
@@ -79,7 +86,7 @@ export async function uploadGarmentImage(
 
     // Retrieve public URL for storage object
     const { data: publicUrlData } = supabase.storage
-      .from('garment-images')
+      .from(bucketName)
       .getPublicUrl(data.path);
 
     if (!publicUrlData?.publicUrl) {
@@ -94,6 +101,9 @@ export async function uploadGarmentImage(
     if (err instanceof UploadError) {
       throw err;
     }
-    throw new UploadError(`Unexpected error uploading garment image: ${err.message || err}`, err);
+    const errorMessage = err?.message || String(err);
+    console.error('Supabase Storage Error:', errorMessage);
+    throw new UploadError(`Unexpected error uploading garment image: ${errorMessage}`, err);
   }
 }
+
