@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getGarmentPublicUrl } from '@/lib/supabase/get-public-url';
 
 interface StylingSuiteViewProps {
   initialGarmentCount: number;
@@ -235,7 +236,7 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
             {/* Side-by-Side Selected Garment Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {(recommendation.items || []).map((item: any, idx: number) => {
-                const imageUrl = item?.image_url || '/placeholder.png';
+                const imageUrl = getGarmentPublicUrl(item?.image_url, item?.image_path);
                 const title = item?.title || item?.subcategory || item?.category || 'Curated Piece';
                 const category = item?.category || 'Piece';
                 const color = item?.primary_color || item?.color || 'Neutral';

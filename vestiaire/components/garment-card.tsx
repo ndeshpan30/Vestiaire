@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Garment } from '@/types/garment';
+import { getGarmentPublicUrl } from '@/lib/supabase/get-public-url';
 
 interface GarmentCardProps {
   garment: Garment;
@@ -11,7 +12,8 @@ interface GarmentCardProps {
 }
 
 export function GarmentCard({ garment, onArchive, isArchiving }: GarmentCardProps) {
-  const imageUrl = garment?.image_url || garment?.image_path || '/placeholder.png';
+  // Resolve full public URL using Supabase storage public URL helper if relative path
+  const imageUrl = getGarmentPublicUrl(garment?.image_url, garment?.image_path);
   const title = garment?.title || garment?.subcategory || garment?.category || 'Curated Garment';
   const category = garment?.category || 'Uncategorized';
   const color = garment?.primary_color || garment?.color || 'White';

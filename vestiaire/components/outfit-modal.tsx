@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { getGarmentPublicUrl } from '@/lib/supabase/get-public-url';
 
 interface OutfitModalProps {
   userId?: string;
@@ -183,7 +184,7 @@ export function OutfitModal({ userId }: OutfitModalProps) {
                   {/* Selected Garments Image Cards Row */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {(recommendation?.items ?? []).map((item: any, idx: number) => {
-                      const imageSrc = item?.image_url ?? '/placeholder.png';
+                      const imageSrc = getGarmentPublicUrl(item?.image_url, item?.image_path);
                       return (
                         <div
                           key={item?.id ?? idx}
