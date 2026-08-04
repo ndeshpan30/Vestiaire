@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { GarmentUploader } from '@/components/garment-uploader';
+import { GarmentCard } from '@/components/garment-card';
 import { archiveGarment } from '@/app/actions/archive-garment';
 import { Garment } from '@/types/garment';
 
@@ -215,7 +215,13 @@ export function WardrobeArchiveView({ initialGarments, userId }: WardrobeArchive
         </div>
       </div>
 
-      {/* 4. Responsive Garments Grid View */}
+      {/* 4. Curated Catalog Section Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-serif font-normal text-[#121212]">Curated Catalog</h2>
+        <span className="text-xs text-[#737373]">Showing {filteredGarments.length} garments</span>
+      </div>
+
+      {/* 5. Responsive Garments Grid View */}
       {filteredGarments.length === 0 ? (
         <div className="border border-dashed border-[#CCCCCC] rounded-xl p-12 text-center bg-[#FAFAFA]">
           <h3 className="text-base font-serif text-[#121212] font-semibold mb-1">
@@ -237,64 +243,14 @@ export function WardrobeArchiveView({ initialGarments, userId }: WardrobeArchive
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredGarments.map((garment, idx) => {
-            const imageUrl = garment?.image_url || '/placeholder.png';
-            const title = garment?.title || garment?.subcategory || garment?.category || 'Curated Garment';
-            const category = garment?.category || 'Uncategorized';
-            const color = garment?.primary_color || garment?.color || 'Neutral';
-            const formality = typeof garment?.formality === 'number' ? garment.formality : null;
-
-            return (
-              <article
-                key={garment?.id || idx}
-                className="group border border-[#EEEEEE] rounded-lg bg-white overflow-hidden flex flex-col justify-between hover:border-[#4A121A] transition-all duration-200 shadow-2xs"
-              >
-                <div>
-                  {/* Image Container with Safe Fallback */}
-                  <div className="relative aspect-3/4 w-full bg-[#FAF9F6] overflow-hidden border-b border-[#EEEEEE]">
-                    <Image
-                      src={imageUrl}
-                      alt={title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition duration-300"
-                    />
-                    <span className="absolute top-2 left-2 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-white/90 text-[#4A121A] rounded shadow-2xs backdrop-blur-xs">
-                      {category}
-                    </span>
-                    {formality !== null && (
-                      <span className="absolute top-2 right-2 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-[#121212]/80 text-white rounded backdrop-blur-xs">
-                        {formality}/10
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Card Content Details */}
-                  <div className="p-3">
-                    <h4 className="text-xs font-semibold text-[#121212] line-clamp-1">
-                      {title}
-                    </h4>
-                    <p className="text-[11px] text-[#737373] line-clamp-1 mt-0.5">
-                      {color} {garment?.material_guess ? `• ${garment.material_guess}` : ''}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Card Actions Footer */}
-                <div className="p-3 pt-0 flex items-center justify-between border-t border-[#FAFAFA] mt-2">
-                  <span className="text-[10px] text-[#A3A3A3]">
-                    {Array.isArray(garment?.season) ? garment.season.join(', ') : 'All Seasons'}
-                  </span>
-                  <button
-                    onClick={() => handleArchive(garment.id)}
-                    disabled={archivingId === garment.id}
-                    className="text-[10px] font-semibold text-red-600 hover:text-red-800 hover:underline transition disabled:opacity-50"
-                  >
-                    {archivingId === garment.id ? 'Archiving...' : 'Archive'}
-                  </button>
-                </div>
-              </article>
-            );
-          })}
+          {filteredGarments.map((garment, idx) => (
+            <GarmentCard
+              key={garment?.id || idx}
+              garment={garment}
+              onArchive={handleArchive}
+              isArchiving={archivingId === garment?.id}
+            />
+          ))}
         </div>
       )}
     </div>
