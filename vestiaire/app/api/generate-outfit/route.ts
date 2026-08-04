@@ -79,23 +79,25 @@ export async function POST(req: NextRequest) {
     const supabase = createClient();
 
     // 1. Query Anchor Garment Item
-    const { data: anchorGarment, error: anchorError } = await supabase
+    const { data: rawAnchorGarment, error: anchorError } = await supabase
       .from('garments')
-      .select('id, category, subcategory, taxonomy_path, primary_color, secondary_colors, pattern, material_guess, warmth, formality, season, vibe_tags, accessory_type, metal_tone, delicacy')
+      .select('*')
       .eq('id', anchorItemId)
       .single();
 
-    if (anchorError || !anchorGarment) {
+    if (anchorError || !rawAnchorGarment) {
       return NextResponse.json(
         { error: `Anchor garment not found: ${anchorError?.message || 'Invalid ID'}` },
         { status: 404 }
       );
     }
 
+    const anchorGarment = rawAnchorGarment as any;
+
     // 2. Query Wardrobe Items (Lean Payload)
-    const { data: wardrobeGarments, error: wardrobeError } = await supabase
+    const { data: rawWardrobeGarments, error: wardrobeError } = await supabase
       .from('garments')
-      .select('id, category, subcategory, primary_color, secondary_colors, pattern, material_guess, warmth, formality, season, vibe_tags, accessory_type, metal_tone, delicacy')
+      .select('*')
       .eq('user_id', userId)
       .neq('id', anchorItemId);
 
@@ -105,6 +107,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    const wardrobeGarments: any[] = (rawWardrobeGarments || []) as any[];
 
     const allItems = [anchorGarment, ...(wardrobeGarments || [])];
     const validItemIds = new Set(allItems.map((i) => i.id));

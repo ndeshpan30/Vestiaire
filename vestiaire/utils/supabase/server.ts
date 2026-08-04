@@ -1,12 +1,24 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createClient as createBaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { Database } from '@/lib/supabase/database.types';
 
-export function createClient() {
-  const cookieStore = cookies();
+export function createClient(): SupabaseClient<Database> {
+  let cookieStore: any;
+  try {
+    cookieStore = cookies();
+  } catch {
+    // Outside Next.js HTTP request scope fallback (CLI, tests, script environments)
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'placeholder-anon-key';
 
-  return createServerClient(
+  if (!cookieStore) {
+    return createBaseClient<Database>(url, key);
+  }
+
+  return createServerClient<Database>(
     url,
     key,
     {
@@ -30,5 +42,5 @@ export function createClient() {
         },
       },
     }
-  );
+  ) as unknown as SupabaseClient<Database>;
 }

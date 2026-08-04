@@ -8,11 +8,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, SchemaType, ResponseSchema } from '@google/generative-ai';
+import { garmentAnalysisSchema as zodGarmentSchema } from '@/lib/schemas/garment-analysis';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Native Gemini Response Schema Definition
+/**
+ * Native Gemini Response Schema Definition
+ * NOTE: This Gemini responseSchema MUST be kept in strict lockstep with the Zod schema
+ * in `lib/schemas/garment-analysis.ts` to ensure runtime validation alignment.
+ */
 const garmentAnalysisSchema: ResponseSchema = {
   type: SchemaType.OBJECT,
   properties: {
@@ -216,9 +221,9 @@ Strict Rules:
 
     const text = result.response.text();
 
-    let analysis;
+    let rawAnalysis;
     try {
-      analysis = JSON.parse(text);
+      rawAnalysis = JSON.parse(text);
     } catch (parseErr: any) {
       console.error('Gemini JSON Parse Failure:', parseErr, 'Raw Text:', text);
       return NextResponse.json(
@@ -227,7 +232,20 @@ Strict Rules:
       );
     }
 
-    return NextResponse.json({ analysis }, { status: 200 });
+    const validation = zodGarmentSchema.safeParse(rawAnalysis);
+
+    if (!validation.success) {
+      console.error('[Gemini Zod Validation Failure]:', validation.error.format());
+      return NextResponse.json(
+        {
+          error: 'Gemini vision output failed Zod schema validation.',
+          details: validation.error.format(),
+        },
+        { status: 422 }
+      );
+    }
+
+    return NextResponse.json({ analysis: validation.data }, { status: 200 });
   } catch (error: any) {
     console.error('Unhandled Internal Server Error:', error);
     return NextResponse.json(

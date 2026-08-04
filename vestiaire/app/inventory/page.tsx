@@ -9,12 +9,15 @@ export default async function InventoryPage() {
 
   try {
     const supabase = createClient();
-    const { data } = await supabase.auth.getUser();
-    user = data?.user || null;
+    const authResult = await supabase.auth.getUser();
+    user = authResult?.data?.user || null;
   } catch (err) {
-    console.error('[InventoryPage] Auth fetch error:', err);
+    console.error('[InventoryPage] Auth session resolution error:', err);
     user = null;
   }
+
+  // Ensure user is non-null before referencing user.id
+  const userId = user && typeof user.id === 'string' ? user.id : undefined;
 
   return (
     <div className="min-h-screen bg-white text-[#121212] font-sans">
@@ -50,7 +53,7 @@ export default async function InventoryPage() {
           <h2 className="text-xl font-serif font-normal text-[#121212] mb-4">
             Upload & AI Vision Auto-Tagging
           </h2>
-          <GarmentUploader userId={user?.id} />
+          <GarmentUploader userId={userId} />
         </div>
       </main>
     </div>
