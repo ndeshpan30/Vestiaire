@@ -2,6 +2,7 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { HeaderNav } from '@/components/HeaderNav';
 import { GarmentUploader } from '@/components/garment-uploader';
+import { OutfitModal } from '@/components/outfit-modal';
 import Link from 'next/link';
 
 export default async function InventoryPage() {
@@ -24,8 +25,8 @@ export default async function InventoryPage() {
       <HeaderNav userEmail={user?.email} />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
-        {/* Header Title */}
-        <div className="mb-8 border-b border-[#EEEEEE] pb-6 flex items-center justify-between">
+        {/* Header Title & Actions */}
+        <div className="mb-8 border-b border-[#EEEEEE] pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-extrabold tracking-widest text-[#4A121A] uppercase">
@@ -40,12 +41,18 @@ export default async function InventoryPage() {
             </p>
           </div>
 
-          <Link
-            href="/closet"
-            className="py-2 px-4 bg-white border border-[#EEEEEE] hover:border-[#4A121A] hover:text-[#4A121A] text-xs font-semibold uppercase tracking-wider rounded-md transition"
-          >
-            ← Back to Closet
-          </Link>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Primary Action Button */}
+            <OutfitModal userId={userId} />
+
+            {/* Secondary Action Link */}
+            <Link
+              href="/closet"
+              className="py-2.5 px-4 bg-white border border-[#EEEEEE] hover:border-[#4A121A] hover:text-[#4A121A] text-xs font-semibold uppercase tracking-wider rounded-md transition text-center whitespace-nowrap"
+            >
+              ← Back to Closet
+            </Link>
+          </div>
         </div>
 
         {/* Bulk Garment Image Uploader Component */}
