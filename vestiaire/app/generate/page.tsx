@@ -2,15 +2,14 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { HeaderNav } from '@/components/HeaderNav';
 import { NavigationTabs } from '@/components/navigation-tabs';
-import { WardrobeArchiveView } from '@/components/wardrobe-archive-view';
-import { Garment } from '@/types/garment';
+import { StylingSuiteView } from '@/components/styling-suite-view';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function InventoryPage() {
+export default async function GeneratePage() {
   let user: any = null;
-  let garments: Garment[] = [];
+  let garmentCount = 0;
 
   try {
     const supabase = createClient();
@@ -19,21 +18,20 @@ export default async function InventoryPage() {
 
     const resolvedUserId = user?.id || process.env.DEMO_USER_ID || '11111111-1111-1111-1111-111111111111';
 
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from('garments')
-      .select('*')
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', resolvedUserId)
-      .eq('is_archived', false)
-      .order('created_at', { ascending: false });
+      .eq('is_archived', false);
 
     if (error) {
-      console.error('[InventoryPage] Database query error:', error.message);
+      console.error('[GeneratePage] Count query error:', error.message);
     } else {
-      garments = (data || []) as Garment[];
+      garmentCount = count || 0;
     }
   } catch (err) {
-    console.error('[InventoryPage] Exception during load:', err);
-    garments = [];
+    console.error('[GeneratePage] Exception during load:', err);
+    garmentCount = 0;
   }
 
   const userId = user && typeof user.id === 'string' ? user.id : undefined;
@@ -46,9 +44,9 @@ export default async function InventoryPage() {
       {/* Sticky Tab Bar Navigation */}
       <NavigationTabs />
 
-      {/* Main Tab 1 Content */}
+      {/* Main Tab 2 Content */}
       <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">
-        <WardrobeArchiveView initialGarments={garments} userId={userId} />
+        <StylingSuiteView initialGarmentCount={garmentCount} userId={userId} />
       </main>
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { HeaderNav } from '@/components/HeaderNav';
+import { NavigationTabs } from '@/components/navigation-tabs';
 import Link from 'next/link';
 
 export default async function HomePage() {
@@ -16,34 +17,37 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#121212] font-sans">
+    <div className="min-h-screen bg-white text-[#121212] font-sans flex flex-col">
       <HeaderNav userEmail={user?.email} />
+      <NavigationTabs />
 
-      <main className="max-w-4xl mx-auto px-6 py-20 text-center">
-        <span className="inline-block rounded-full bg-[#FAFAFA] border border-[#EEEEEE] px-3 py-1 text-xs font-semibold text-[#5B1422] uppercase tracking-wider mb-4">
+      <main className="max-w-4xl mx-auto px-6 py-16 text-center flex-1">
+        <span className="inline-block rounded-full bg-[#FAF5F6] border border-[#E5D5D8] px-3 py-1 text-xs font-semibold text-[#4A121A] uppercase tracking-wider mb-4">
           EDITORIAL CLOSET ENGINE
         </span>
 
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#121212] uppercase leading-tight mb-4">
-          CURATED WARDROBE ARCHITECTURE
+        <h1 className="text-4xl sm:text-5xl font-serif font-normal tracking-tight text-[#121212] leading-tight mb-4">
+          Curated Wardrobe Architecture
         </h1>
 
-        <p className="text-base text-[#525252] max-w-2xl mx-auto leading-relaxed mb-8">
+        <p className="text-sm sm:text-base text-[#525252] max-w-2xl mx-auto leading-relaxed mb-8">
           A minimalist approach to personal style—high-contrast typography, strict spatial geometry, and automated AI outfit pairing powered by Supabase and Gemini Vision.
         </p>
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="/signup"
-            className="py-3 px-6 bg-[#5B1422] hover:bg-[#450F1A] text-white font-semibold text-xs uppercase tracking-wider rounded-md transition shadow-xs"
+            href="/inventory"
+            className="w-full sm:w-auto py-3.5 px-8 bg-[#4A121A] hover:bg-[#380D14] text-white font-semibold text-xs uppercase tracking-wider rounded-md transition shadow-sm flex items-center justify-center gap-2"
           >
-            Create Your Account
+            <span>📁</span>
+            <span>Tab 1: Wardrobe Archive</span>
           </Link>
           <Link
-            href="/login"
-            className="py-3 px-6 bg-white border border-[#EEEEEE] hover:border-[#5B1422] hover:text-[#5B1422] text-xs font-semibold uppercase tracking-wider text-[#121212] rounded-md transition"
+            href="/generate"
+            className="w-full sm:w-auto py-3.5 px-8 bg-white border border-[#4A121A] text-[#4A121A] hover:bg-[#FAF5F6] font-semibold text-xs uppercase tracking-wider rounded-md transition shadow-2xs flex items-center justify-center gap-2"
           >
-            Sign In
+            <span>✨</span>
+            <span>Tab 2: AI Styling Suite</span>
           </Link>
         </div>
       </main>
