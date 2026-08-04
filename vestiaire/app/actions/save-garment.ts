@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 import { Garment, SaveGarmentInput, SaveGarmentError } from '@/types/garment';
 
@@ -64,6 +65,11 @@ export async function saveGarment(input: SaveGarmentInput): Promise<Garment> {
     if (!data) {
       throw new SaveGarmentError('Garment inserted successfully but no row data was returned.');
     }
+
+    // Revalidate catalog & closet routes immediately after inserting the new garment row
+    revalidatePath('/closet');
+    revalidatePath('/catalog');
+    revalidatePath('/inventory');
 
     return data as Garment;
   } catch (err: any) {
