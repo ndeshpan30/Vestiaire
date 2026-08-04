@@ -5,8 +5,16 @@ import { GarmentUploader } from '@/components/garment-uploader';
 import Link from 'next/link';
 
 export default async function InventoryPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  let user: any = null;
+
+  try {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data?.user || null;
+  } catch (err) {
+    console.error('[InventoryPage] Auth fetch error:', err);
+    user = null;
+  }
 
   return (
     <div className="min-h-screen bg-white text-[#121212] font-sans">
