@@ -217,19 +217,43 @@ export function GarmentUploader({
 
       let savedGarment: Garment | undefined;
       try {
-        savedGarment = await saveGarment({
+        const saveRes = await saveGarment({
           userId,
           imagePath: path,
           imageUrl: publicUrl,
           analysis,
         });
 
+        if (!saveRes.success) {
+          console.error('[inventory] saveGarment failed:', saveRes.error);
+          setQueue((prev) =>
+            prev.map((q) =>
+              q.id === item.id
+                ? { ...q, status: 'error', progress: 0, errorMessage: saveRes.error }
+                : q
+            )
+          );
+          setAnnouncement(`Failed to save ${item.file.name}: ${saveRes.error}`);
+          return null;
+        }
+
+        savedGarment = saveRes.data;
+
         if (savedGarment && onOptimisticAdd) {
           onOptimisticAdd(savedGarment);
         }
       } catch (saveErr: any) {
-        console.error('[GarmentUploader DB Save Error]:', saveErr?.message || saveErr);
-        throw saveErr;
+        const errMsg = saveErr?.message || String(saveErr);
+        console.error('[inventory] saveGarment failed:', saveErr);
+        setQueue((prev) =>
+          prev.map((q) =>
+            q.id === item.id
+              ? { ...q, status: 'error', progress: 0, errorMessage: errMsg }
+              : q
+          )
+        );
+        setAnnouncement(`Failed to save ${item.file.name}: ${errMsg}`);
+        return null;
       }
 
       setQueue((prev) =>
@@ -250,7 +274,7 @@ export function GarmentUploader({
       return result;
     } catch (err: any) {
       const errorMsg = err instanceof UploadError ? err.message : err?.message || 'Processing failed';
-      console.error('Supabase Storage Error:', err?.message || err);
+      console.error('[inventory] saveGarment failed:', err?.message || err);
       setQueue((prev) =>
         prev.map((q) =>
           q.id === item.id

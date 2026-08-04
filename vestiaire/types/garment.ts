@@ -47,6 +47,10 @@ export interface SaveGarmentInput {
   analysis: GarmentAnalysis;
 }
 
+export type SaveGarmentResult =
+  | { success: true; data: Garment }
+  | { success: false; error: string };
+
 export class SaveGarmentError extends Error {
   constructor(message: string, public readonly originalError?: any) {
     super(message);
