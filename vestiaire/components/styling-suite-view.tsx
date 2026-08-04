@@ -10,7 +10,7 @@ interface StylingSuiteViewProps {
 }
 
 export type OccasionOption = 'Casual' | 'Work' | 'Business Formal' | 'Evening' | 'Streetwear' | 'Night Out';
-export type WeatherOption = 'Hot & Sunny' | 'Mild' | 'Cold & Layered' | 'Rainy';
+export type WeatherOption = 'Hot and Sunny' | 'Mild' | 'Cold and Layered' | 'Rainy';
 
 export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteViewProps) {
   const [occasion, setOccasion] = useState<OccasionOption>('Casual');
@@ -20,7 +20,7 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
   const [recommendation, setRecommendation] = useState<any | null>(null);
 
   const occasions: OccasionOption[] = ['Casual', 'Work', 'Business Formal', 'Evening', 'Streetwear', 'Night Out'];
-  const weatherOptions: WeatherOption[] = ['Hot & Sunny', 'Mild', 'Cold & Layered', 'Rainy'];
+  const weatherOptions: WeatherOption[] = ['Hot and Sunny', 'Mild', 'Cold and Layered', 'Rainy'];
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -42,7 +42,7 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
       if (!response.ok || resData.success === false) {
         if (resData.reason === 'INSUFFICIENT_GARMENTS') {
           setErrorInfo({
-            message: resData.message || 'You need at least 2 wardrobe items to generate an outfit. Head over to the Wardrobe Archive tab to upload items!',
+            message: resData.message || 'You need at least 2 wardrobe items to generate an outfit. Head over to the Wardrobe Archive tab to upload items.',
             reason: 'INSUFFICIENT_GARMENTS',
           });
         } else {
@@ -76,7 +76,7 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-serif font-normal text-[#121212]">
-          AI Wardrobe Curator & Daily Stylist
+          AI Wardrobe Curator and Daily Stylist
         </h1>
         <p className="text-xs sm:text-sm text-[#525252] mt-2 max-w-2xl leading-relaxed">
           Intelligently ensemble your personal clothing archive powered by Gemini AI vision intelligence. Select your current occasion and weather constraints below.
@@ -143,9 +143,8 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
             type="button"
             onClick={handleGenerate}
             disabled={isLoading}
-            className="w-full sm:w-auto px-8 py-3.5 bg-[#4A121A] hover:bg-[#380D14] text-white text-xs font-semibold uppercase tracking-wider rounded-md shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto px-8 py-3.5 bg-[#4A121A] hover:bg-[#380D14] text-white text-xs font-semibold uppercase tracking-wider rounded-md shadow-md transition-all duration-200 flex items-center justify-center cursor-pointer disabled:opacity-50"
           >
-            <span className="text-sm">✨</span>
             <span>Generate Outfit for the Day</span>
           </button>
         </div>
@@ -179,24 +178,22 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
         ) : initialGarmentCount < 2 || (errorInfo && errorInfo.reason === 'INSUFFICIENT_GARMENTS') ? (
           /* Edge Case Empty State (< 2 Garments) */
           <div className="border border-dashed border-[#CCCCCC] rounded-xl p-12 text-center bg-[#FAFAFA] space-y-4">
-            <div className="text-4xl">📁</div>
             <h3 className="text-lg font-serif font-medium text-[#121212]">
               Insufficient Wardrobe Items
             </h3>
             <p className="text-xs sm:text-sm text-[#525252] max-w-md mx-auto leading-relaxed">
-              You need at least 2 wardrobe items to generate an outfit. Head over to the Wardrobe Archive tab to upload items!
+              You need at least 2 wardrobe items to generate an outfit. Head over to the Wardrobe Archive tab to upload items.
             </p>
             <Link
               href="/inventory"
               className="inline-block px-6 py-2.5 bg-[#4A121A] hover:bg-[#380D14] text-white text-xs font-semibold uppercase tracking-wider rounded-md transition shadow-xs"
             >
-              ← Go to Wardrobe Archive
+              Go to Wardrobe Archive
             </Link>
           </div>
         ) : errorInfo ? (
           /* General Error State */
           <div className="p-6 bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg text-center space-y-4">
-            <div className="text-3xl">⚠️</div>
             <p className="text-xs sm:text-sm font-medium text-[#991B1B] max-w-md mx-auto">
               {errorInfo.message}
             </p>
@@ -229,9 +226,8 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
                 type="button"
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="px-5 py-2.5 bg-white border border-[#4A121A] text-[#4A121A] hover:bg-[#FAF5F6] text-xs font-semibold uppercase tracking-wider rounded-md transition flex items-center justify-center gap-2 shadow-2xs"
+                className="px-5 py-2.5 bg-white border border-[#4A121A] text-[#4A121A] hover:bg-[#FAF5F6] text-xs font-semibold uppercase tracking-wider rounded-md transition flex items-center justify-center shadow-2xs"
               >
-                <span>↻</span>
                 <span>Shuffle / Re-generate</span>
               </button>
             </div>
@@ -297,9 +293,8 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
         ) : (
           /* Initial Ready State */
           <div className="text-center py-12 text-[#737373]">
-            <div className="text-3xl mb-2">✨</div>
             <p className="text-xs sm:text-sm">
-              Select your occasion and weather directives above, then click <strong>"✨ Generate Outfit for the Day"</strong> to curate your look.
+              Select your occasion and weather directives above, then click <strong>"Generate Outfit for the Day"</strong> to curate your look.
             </p>
           </div>
         )}

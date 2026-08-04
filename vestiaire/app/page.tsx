@@ -37,16 +37,14 @@ export default async function HomePage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/inventory"
-            className="w-full sm:w-auto py-3.5 px-8 bg-[#4A121A] hover:bg-[#380D14] text-white font-semibold text-xs uppercase tracking-wider rounded-md transition shadow-sm flex items-center justify-center gap-2"
+            className="w-full sm:w-auto py-3.5 px-8 bg-[#4A121A] hover:bg-[#380D14] text-white font-semibold text-xs uppercase tracking-wider rounded-md transition shadow-sm flex items-center justify-center"
           >
-            <span>📁</span>
             <span>Tab 1: Wardrobe Archive</span>
           </Link>
           <Link
             href="/generate"
-            className="w-full sm:w-auto py-3.5 px-8 bg-white border border-[#4A121A] text-[#4A121A] hover:bg-[#FAF5F6] font-semibold text-xs uppercase tracking-wider rounded-md transition shadow-2xs flex items-center justify-center gap-2"
+            className="w-full sm:w-auto py-3.5 px-8 bg-white border border-[#4A121A] text-[#4A121A] hover:bg-[#FAF5F6] font-semibold text-xs uppercase tracking-wider rounded-md transition shadow-2xs flex items-center justify-center"
           >
-            <span>✨</span>
             <span>Tab 2: AI Styling Suite</span>
           </Link>
         </div>

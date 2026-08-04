@@ -81,9 +81,8 @@ export function OutfitModal({ userId }: OutfitModalProps) {
       {/* Primary Dashboard CTA Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full sm:w-auto px-6 py-3 bg-[#4A121A] hover:bg-[#380D14] text-white text-xs font-semibold uppercase tracking-wider rounded-md shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A121A] focus:ring-offset-2"
+        className="w-full sm:w-auto px-6 py-3 bg-[#4A121A] hover:bg-[#380D14] text-white text-xs font-semibold uppercase tracking-wider rounded-md shadow-sm transition-all duration-200 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A121A] focus:ring-offset-2"
       >
-        <span className="text-sm leading-none">✦</span>
         <span>Generate Outfit for the Day</span>
       </button>
 
@@ -104,10 +103,10 @@ export function OutfitModal({ userId }: OutfitModalProps) {
               </div>
               <button
                 onClick={handleClose}
-                className="text-[#737373] hover:text-[#121212] p-2 text-sm font-semibold rounded-full hover:bg-[#F5F5F5] transition"
+                className="text-[#737373] hover:text-[#121212] px-2 py-1 text-xs font-semibold uppercase tracking-wider rounded hover:bg-[#F5F5F5] transition"
                 aria-label="Close modal"
               >
-                ✕
+                Close
               </button>
             </div>
 
@@ -136,7 +135,6 @@ export function OutfitModal({ userId }: OutfitModalProps) {
               ) : errorInfo ? (
                 /* Error State Message + Retry inside Modal Shell */
                 <div className="p-6 bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg text-center space-y-4 my-4">
-                  <div className="text-2xl">⚠️</div>
                   <p className="text-xs sm:text-sm font-medium text-[#991B1B] max-w-md mx-auto">
                     {errorInfo.message}
                   </p>
@@ -273,7 +271,7 @@ export function OutfitModal({ userId }: OutfitModalProps) {
                           onClick={() => setWeather(opt)}
                           className={`py-2.5 px-3 text-xs font-semibold rounded-md border transition text-center ${
                             weather === opt
-                              ? 'bg-[#4A121A] text-[#ffffff] bg-[#4A121A] border-[#4A121A] shadow-xs'
+                              ? 'bg-[#4A121A] text-white border-[#4A121A] shadow-xs'
                               : 'bg-white text-[#525252] border-[#EEEEEE] hover:border-[#4A121A]'
                           }`}
                         >
@@ -296,9 +294,8 @@ export function OutfitModal({ userId }: OutfitModalProps) {
                       type="button"
                       onClick={handleGenerate}
                       disabled={isLoading}
-                      className="px-4 py-2 bg-white border border-[#4A121A] text-[#4A121A] hover:bg-[#FAF5F6] text-xs font-semibold uppercase tracking-wider rounded-md transition flex items-center gap-1.5"
+                      className="px-4 py-2 bg-white border border-[#4A121A] text-[#4A121A] hover:bg-[#FAF5F6] text-xs font-semibold uppercase tracking-wider rounded-md transition flex items-center justify-center"
                     >
-                      <span>↻</span>
                       <span>Shuffle</span>
                     </button>
 
@@ -307,9 +304,8 @@ export function OutfitModal({ userId }: OutfitModalProps) {
                       type="button"
                       disabled
                       title="Save Outfit (Coming Soon)"
-                      className="px-4 py-2 bg-[#F5F5F5] border border-[#E5E5E5] text-[#A3A3A3] text-xs font-semibold uppercase tracking-wider rounded-md cursor-not-allowed opacity-70 flex items-center gap-1.5"
+                      className="px-4 py-2 bg-[#F5F5F5] border border-[#E5E5E5] text-[#A3A3A3] text-xs font-semibold uppercase tracking-wider rounded-md cursor-not-allowed opacity-70 flex items-center justify-center"
                     >
-                      <span>★</span>
                       <span>Save Outfit (Soon)</span>
                     </button>
                   </div>

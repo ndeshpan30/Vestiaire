@@ -103,9 +103,9 @@ export function WardrobeArchiveView({ initialGarments, userId }: WardrobeArchive
 
           <button
             onClick={() => setShowUploader(!showUploader)}
-            className="px-6 py-3 bg-[#4A121A] hover:bg-[#380D14] text-white text-xs font-semibold uppercase tracking-wider rounded-md transition shadow-xs flex items-center justify-center gap-2"
+            className="px-6 py-3 bg-[#4A121A] hover:bg-[#380D14] text-white text-xs font-semibold uppercase tracking-wider rounded-md transition shadow-xs flex items-center justify-center"
           >
-            <span>{showUploader ? '✕ Close Form' : '+ ADD ITEM'}</span>
+            <span>{showUploader ? 'Close Form' : 'ADD ITEM'}</span>
           </button>
         </div>
 
@@ -163,15 +163,14 @@ export function WardrobeArchiveView({ initialGarments, userId }: WardrobeArchive
       <div className="bg-white border border-[#EEEEEE] rounded-xl p-4 sm:p-6 space-y-4 shadow-2xs">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           {/* Search Input */}
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full sm:w-80">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search garments by name, color, material..."
-              className="w-full pl-9 pr-4 py-2 bg-[#FAFAFA] border border-[#EEEEEE] rounded-md text-xs text-[#121212] focus:outline-none focus:border-[#4A121A] transition"
+              className="w-full px-3 py-2 bg-[#FAFAFA] border border-[#EEEEEE] rounded-md text-xs text-[#121212] focus:outline-none focus:border-[#4A121A] transition"
             />
-            <span className="absolute left-3 top-2.5 text-xs text-[#737373]">🔍</span>
           </div>
 
           {/* Season Filter Pills */}
@@ -219,13 +218,12 @@ export function WardrobeArchiveView({ initialGarments, userId }: WardrobeArchive
       {/* 4. Responsive Garments Grid View */}
       {filteredGarments.length === 0 ? (
         <div className="border border-dashed border-[#CCCCCC] rounded-xl p-12 text-center bg-[#FAFAFA]">
-          <div className="text-3xl mb-2">👕</div>
           <h3 className="text-base font-serif text-[#121212] font-semibold mb-1">
             No Garments Found
           </h3>
           <p className="text-xs text-[#525252] max-w-sm mx-auto mb-4">
             {garments.length === 0
-              ? 'Your wardrobe archive is currently empty. Click "+ ADD ITEM" above to start uploading clothing photos!'
+              ? 'Your wardrobe archive is currently empty. Click "ADD ITEM" above to start uploading clothing photos.'
               : 'No garments matched your current filter criteria. Try adjusting your search query or filters.'}
           </p>
           {garments.length === 0 && (
@@ -233,7 +231,7 @@ export function WardrobeArchiveView({ initialGarments, userId }: WardrobeArchive
               onClick={() => setShowUploader(true)}
               className="px-5 py-2 bg-[#4A121A] text-white text-xs font-semibold uppercase tracking-wider rounded-md transition"
             >
-              + Upload First Item
+              Upload First Item
             </button>
           )}
         </div>
