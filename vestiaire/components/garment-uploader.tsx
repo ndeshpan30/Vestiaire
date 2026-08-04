@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { uploadGarmentImage, UploadError } from '@/lib/supabase/upload-garment-image';
 import { saveGarment } from '@/app/actions/save-garment';
+import { processAndCompressImage } from '@/lib/utils/image-processor';
 import { Garment, GarmentAnalysis } from '@/types/garment';
 
 export interface UploadQueueItem {
@@ -25,70 +26,6 @@ export interface GarmentUploaderProps {
   onOptimisticAdd?: (garment: Garment) => void;
 }
 
-/**
- * Client-side canvas image compressor:
- * Resizes max dimension to 1200px and compresses to JPEG quality 0.8.
- */
-function compressImage(file: File): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      const MAX_DIM = 1200;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > MAX_DIM) {
-          height = Math.round((height * MAX_DIM) / width);
-          width = MAX_DIM;
-        }
-      } else {
-        if (height > MAX_DIM) {
-          width = Math.round((width * MAX_DIM) / height);
-          height = MAX_DIM;
-        }
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Failed to get canvas 2D context'));
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const compressedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            });
-            resolve(compressedFile);
-          } else {
-            reject(new Error('Canvas compression failed'));
-          }
-        },
-        'image/jpeg',
-        0.8
-      );
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('Image load failed'));
-    };
-
-    img.src = objectUrl;
-  });
-}
-
 export function GarmentUploader({
   userId = '11111111-1111-1111-1111-111111111111',
   onUploaded,
@@ -106,9 +43,11 @@ export function GarmentUploader({
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (!file.type.startsWith('image/')) continue;
+      if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic') && !file.name.toLowerCase().endsWith('.heif')) {
+        continue;
+      }
 
-      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const previewUrl = URL.createObjectURL(file);
 
       newItems.push({
@@ -128,7 +67,7 @@ export function GarmentUploader({
 
     for (const item of newItems) {
       try {
-        const compressed = await compressImage(item.file);
+        const compressed = await processAndCompressImage(item.file);
         setQueue((prev) =>
           prev.map((q) => (q.id === item.id ? { ...q, compressedBlob: compressed } : q))
         );
@@ -350,7 +289,7 @@ export function GarmentUploader({
           Upload Garment Photos
         </h3>
         <p className="text-xs text-[#71717A] max-w-xs mx-auto mb-3 leading-relaxed">
-          Drag and drop images here, or click to browse. Supports multiple files & camera capture.
+          Drag and drop images here, or click to browse. Supports large photos, HEIC, PNG, & WEBP.
         </p>
 
         <span className="inline-block py-2 px-4 bg-white border border-[#EEEEEE] text-[11px] font-bold text-[#18181B] uppercase tracking-wider rounded-md">
@@ -409,7 +348,7 @@ export function GarmentUploader({
                       aria-label={`Remove ${item.file.name} from upload queue`}
                       title={`Remove ${item.file.name}`}
                     >
-                      ✕
+                      Close
                     </button>
                   )}
 
@@ -429,7 +368,7 @@ export function GarmentUploader({
 
                   {item.status === 'done' && (
                     <div className="absolute top-1.5 left-1.5 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-bold rounded-sm shadow-xs">
-                      Saved ✓
+                      Saved
                     </div>
                   )}
 

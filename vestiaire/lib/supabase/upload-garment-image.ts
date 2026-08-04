@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/client';
+import { processAndCompressImage } from '@/lib/utils/image-processor';
 
 export class UploadError extends Error {
   constructor(message: string, public readonly originalError?: any) {
@@ -13,31 +14,11 @@ export class UploadError extends Error {
 const BUCKET_NAME = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'garment-images';
 
 /**
- * RLS STORAGE POLICY FLAG & CHECKLIST:
- * Ensure the `garment-images` bucket is created in Supabase Dashboard (Storage -> New Bucket -> 'garment-images', Public=true).
- * 
- * Ensure the following RLS Policies are applied on `storage.objects`:
- * 
- * 1. INSERT (Upload):
- *    CREATE POLICY "Users can upload to their own folder in garment-images" ON storage.objects
- *    FOR INSERT WITH CHECK (
- *        bucket_id = 'garment-images' AND auth.uid()::text = (storage.foldername(name))[1]
- *    );
- * 
- * 2. SELECT (Read):
- *    CREATE POLICY "Public read access for garment-images" ON storage.objects
- *    FOR SELECT USING (bucket_id = 'garment-images');
- * 
- * 3. DELETE (Remove):
- *    CREATE POLICY "Users can delete from their own folder in garment-images" ON storage.objects
- *    FOR DELETE USING (
- *        bucket_id = 'garment-images' AND auth.uid()::text = (storage.foldername(name))[1]
- *    );
- */
-
-/**
  * Uploads a garment image file to the Supabase Storage bucket `garment-images`.
- * Path convention: ${userId}/${crypto.randomUUID()}-${sanitizedFileName}
+ * Automatically compresses, resizes to max 1200px, converts to image/jpeg,
+ * and generates a clean randomized filename.
+ *
+ * Path convention: ${userId}/${Date.now()}-${randomHash}.jpg
  *
  * @param file File object to upload
  * @param userId Authenticated user UUID
@@ -59,20 +40,23 @@ export async function uploadGarmentImage(
   try {
     const supabase = createClient();
 
-    // Sanitize file name (remove special characters and spaces)
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_').toLowerCase();
-    const uuid = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const storagePath = `${userId}/${uuid}-${sanitizedFileName}`;
+    // 1. Process image client-side: resize to 1200px, compress to JPEG < 2MB, sanitize filename
+    const processedFile = await processAndCompressImage(file);
+
+    // 2. Generate clean randomized UUID filename (no spaces or special characters)
+    const randomHash = Math.random().toString(36).substring(2, 9);
+    const cleanFileName = `${Date.now()}-${randomHash}.jpg`;
+    const storagePath = `${userId}/${cleanFileName}`;
 
     const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'garment-images';
 
-    // Upload to Supabase Storage bucket explicitly named `garment-images` with upsert: true
+    // 3. Upload standardized JPEG file to Supabase Storage
     const { data, error } = await supabase.storage
       .from(bucketName)
-      .upload(storagePath, file, {
+      .upload(storagePath, processedFile, {
         cacheControl: '3600',
-        upsert: true, // Allow overwriting to prevent 400 duplicate file errors
-        contentType: file.type || 'image/jpeg',
+        upsert: true,
+        contentType: 'image/jpeg',
       });
 
     if (error) {
@@ -84,7 +68,7 @@ export async function uploadGarmentImage(
       throw new UploadError('Upload succeeded but no storage path was returned.');
     }
 
-    // Retrieve public URL for storage object
+    // 4. Retrieve public URL for storage object
     const { data: publicUrlData } = supabase.storage
       .from(bucketName)
       .getPublicUrl(data.path);
@@ -106,4 +90,3 @@ export async function uploadGarmentImage(
     throw new UploadError(`Unexpected error uploading garment image: ${errorMessage}`, err);
   }
 }
-
