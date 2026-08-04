@@ -259,11 +259,11 @@ export function StylingSuiteView({ initialGarmentCount, userId }: StylingSuiteVi
                       </div>
 
                       <div className="relative aspect-3/4 w-full bg-[#FAF9F6] rounded-md overflow-hidden mb-2">
-                        <Image
+                        <img
                           src={imageUrl}
                           alt={title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition duration-300"
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
                       </div>
 

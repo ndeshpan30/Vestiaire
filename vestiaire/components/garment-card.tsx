@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { Garment } from '@/types/garment';
 import { getGarmentPublicUrl } from '@/lib/supabase/get-public-url';
 
@@ -26,12 +25,11 @@ export function GarmentCard({ garment, onArchive, isArchiving }: GarmentCardProp
       <div>
         {/* Top: Aspect-Square Garment Image with Rounded Top Corners */}
         <div className="relative aspect-square w-full bg-[#FAF9F6] overflow-hidden rounded-t-lg border-b border-[#EEEEEE]">
-          <Image
+          <img
             src={imageUrl}
             alt={title}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover group-hover:scale-105 transition duration-300 rounded-t-lg"
+            loading="lazy"
+            className="w-full h-full object-cover rounded-t-lg group-hover:scale-105 transition duration-300"
           />
           {/* Category Tag Overlay */}
           <span className="absolute top-2 left-2 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-white/90 text-[#4A121A] rounded shadow-2xs backdrop-blur-xs">
