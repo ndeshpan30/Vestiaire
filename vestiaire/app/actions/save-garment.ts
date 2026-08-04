@@ -32,33 +32,38 @@ export async function saveGarment(input: SaveGarmentInput): Promise<Garment> {
   // Priority: 1. Active Supabase Auth user ID, 2. Valid input UUID, 3. Demo User UUID fallback
   const resolvedUserId = authUser?.id || (isValidUuid(inputUserId) ? inputUserId : '11111111-1111-1111-1111-111111111111');
 
-  console.log(`[saveGarment] Inserting new garment row into Supabase with user_id: ${resolvedUserId} (Auth session email: ${authUser?.email || 'unauthenticated/demo'})`);
+  console.log(`[saveGarment] Target Table: 'garments' | User ID: ${resolvedUserId} | Auth Email: ${authUser?.email || 'unauthenticated/demo'}`);
 
   const isAccessory = analysis.category === 'Accessory';
+  const constructedTitle = analysis.subcategory
+    ? `${analysis.primary_color || ''} ${analysis.subcategory}`.trim()
+    : `${analysis.primary_color || ''} ${analysis.category}`.trim();
 
-  const garmentPayload = {
+  const garmentPayload: Record<string, any> = {
     user_id: resolvedUserId,
-    image_path: imagePath,
-    image_url: imageUrl,
+    title: constructedTitle || 'Curated Garment',
     category: analysis.category,
+    color: analysis.primary_color || 'Neutral',
+    secondary_color: Array.isArray(analysis.secondary_colors) ? (analysis.secondary_colors.join(', ') || 'None') : 'None',
+    material: analysis.material_guess || 'Cotton',
+    pattern: analysis.pattern || 'Solid',
+    formality: typeof analysis.formality === 'number' ? analysis.formality : 5,
+    season: Array.isArray(analysis.season) && analysis.season.length > 0 ? analysis.season : ['Spring', 'Summer', 'Fall', 'Winter'],
+    image_url: imageUrl,
+    image_path: imagePath,
     subcategory: analysis.subcategory || null,
     taxonomy_path: analysis.taxonomy_path || null,
     primary_color: analysis.primary_color || null,
     secondary_colors: analysis.secondary_colors || [],
-    pattern: analysis.pattern || null,
     material_guess: analysis.material_guess || null,
     warmth: analysis.warmth ?? null,
-    formality: analysis.formality ?? null,
-    season: analysis.season || [],
     vibe_tags: analysis.vibe_tags || [],
-    // Enforce null values if category is not "Accessory"
     accessory_type: isAccessory ? analysis.accessory_type ?? null : null,
     metal_tone: isAccessory ? analysis.metal_tone ?? null : null,
     delicacy: isAccessory ? analysis.delicacy ?? null : null,
   };
 
   try {
-    const supabase = createClient();
     const { data, error } = await supabase
       .from('garments')
       .insert(garmentPayload)
@@ -66,12 +71,16 @@ export async function saveGarment(input: SaveGarmentInput): Promise<Garment> {
       .single();
 
     if (error) {
+      console.error('[saveGarment DB Error]:', error.message, error.details, error.hint);
       throw new SaveGarmentError(`Supabase database insert failed: ${error.message}`, error);
     }
 
     if (!data) {
+      console.error('[saveGarment DB Error]: No row data returned after insert.');
       throw new SaveGarmentError('Garment inserted successfully but no row data was returned.');
     }
+
+    console.log('[saveGarment DB Success]: Inserted garment row ID:', data.id);
 
     // Revalidate catalog & closet routes immediately after inserting the new garment row
     revalidatePath('/closet');
@@ -83,6 +92,8 @@ export async function saveGarment(input: SaveGarmentInput): Promise<Garment> {
     if (err instanceof SaveGarmentError) {
       throw err;
     }
-    throw new SaveGarmentError(`Unexpected error saving garment: ${err.message || err}`, err);
+    const errMsg = err?.message || String(err);
+    console.error('[saveGarment DB Error]:', errMsg, err?.details, err?.hint);
+    throw new SaveGarmentError(`Unexpected error saving garment: ${errMsg}`, err);
   }
 }

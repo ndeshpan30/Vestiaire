@@ -227,8 +227,9 @@ export function GarmentUploader({
         if (savedGarment && onOptimisticAdd) {
           onOptimisticAdd(savedGarment);
         }
-      } catch (saveErr) {
-        console.warn('Database save note (fallback):', saveErr);
+      } catch (saveErr: any) {
+        console.error('[GarmentUploader DB Save Error]:', saveErr?.message || saveErr);
+        throw saveErr;
       }
 
       setQueue((prev) =>
