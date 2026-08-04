@@ -42,7 +42,7 @@ export default async function InventoryPage() {
           <h2 className="text-xl font-serif font-normal text-[#121212] mb-4">
             Upload & AI Vision Auto-Tagging
           </h2>
-          <GarmentUploader />
+          <GarmentUploader userId={user?.id} />
         </div>
       </main>
     </div>

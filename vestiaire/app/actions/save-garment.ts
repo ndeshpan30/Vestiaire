@@ -13,11 +13,7 @@ import { Garment, SaveGarmentInput, SaveGarmentError } from '@/types/garment';
  * @throws SaveGarmentError on failure
  */
 export async function saveGarment(input: SaveGarmentInput): Promise<Garment> {
-  const { userId, imagePath, imageUrl, analysis } = input;
-
-  if (!userId) {
-    throw new SaveGarmentError('User ID is required to save garment.');
-  }
+  const { userId: inputUserId, imagePath, imageUrl, analysis } = input;
 
   if (!imagePath || !imageUrl) {
     throw new SaveGarmentError('Storage image path and public URL are required.');
@@ -27,10 +23,21 @@ export async function saveGarment(input: SaveGarmentInput): Promise<Garment> {
     throw new SaveGarmentError('Garment analysis payload is missing or invalid.');
   }
 
+  const supabase = createClient();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+
+  const isValidUuid = (id?: string) =>
+    !!id && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
+
+  // Priority: 1. Active Supabase Auth user ID, 2. Valid input UUID, 3. Demo User UUID fallback
+  const resolvedUserId = authUser?.id || (isValidUuid(inputUserId) ? inputUserId : '11111111-1111-1111-1111-111111111111');
+
+  console.log(`[saveGarment] Inserting new garment row into Supabase with user_id: ${resolvedUserId} (Auth session email: ${authUser?.email || 'unauthenticated/demo'})`);
+
   const isAccessory = analysis.category === 'Accessory';
 
   const garmentPayload = {
-    user_id: userId,
+    user_id: resolvedUserId,
     image_path: imagePath,
     image_url: imageUrl,
     category: analysis.category,

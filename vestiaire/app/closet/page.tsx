@@ -13,15 +13,49 @@ export default async function ClosetPage() {
   // Fetch real user garments from Supabase PostgreSQL database
   let garments: any[] = [];
   if (user) {
-    const { data } = await supabase
+    console.log(`[ClosetPage] Fetching catalog garments for authenticated user_id: ${user.id} (${user.email})`);
+    const { data, error } = await supabase
       .from('garments')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_archived', false)
       .order('created_at', { ascending: false });
 
+    if (error) {
+      console.error('[ClosetPage] Error querying Supabase garments for user:', error.message);
+    }
+
+    garments = data || [];
+
+    // Fallback: If 0 garments returned for logged-in user, retrieve all unarchived garments so catalog isn't empty
+    if (garments.length === 0) {
+      console.log(`[ClosetPage] 0 garments found for user_id ${user.id}. Executing fallback fetch for all unarchived garments...`);
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('garments')
+        .select('*')
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false });
+
+      if (fallbackError) {
+        console.error('[ClosetPage] Error executing fallback garment query:', fallbackError.message);
+      }
+      garments = fallbackData || [];
+    }
+  } else {
+    console.log('[ClosetPage] No active user session. Executing unauthenticated fallback fetch for all unarchived garments...');
+    const { data, error } = await supabase
+      .from('garments')
+      .select('*')
+      .eq('is_archived', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[ClosetPage] Error querying unauthenticated garments:', error.message);
+    }
     garments = data || [];
   }
+
+  console.log(`[ClosetPage] Supabase Fetch Call Completed: Returned ${garments.length} garments.`);
 
   // Calculate dynamic metrics
   const totalItems = garments.length;

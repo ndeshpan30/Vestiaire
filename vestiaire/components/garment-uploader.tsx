@@ -90,7 +90,7 @@ function compressImage(file: File): Promise<File> {
 }
 
 export function GarmentUploader({
-  userId = 'demo-curator',
+  userId = '11111111-1111-1111-1111-111111111111',
   onUploaded,
   onBatchComplete,
   onOptimisticAdd,
